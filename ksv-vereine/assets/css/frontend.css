@@ -1,0 +1,158 @@
+.ksv-vereine {
+    --ksv-card-bg: var(--wp--preset--color--base, #fff);
+    --ksv-card-border: var(--wp--preset--color--contrast-3, #e2e2e2);
+    --ksv-tag-bg: var(--wp--preset--color--contrast-2, #f0f0f0);
+    --ksv-tag-color: inherit;
+    --ksv-link-color: var(--wp--preset--color--primary, #2271b1);
+    --ksv-gap: 1rem;
+    --ksv-radius: 8px;
+    font: inherit;
+}
+
+.ksv-vereine__toolbar {
+    margin-bottom: var(--ksv-gap);
+}
+
+.ksv-vereine__search-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.ksv-vereine__search-input {
+    flex: 1 1 220px;
+    min-width: 0;
+}
+
+.ksv-vereine__search-btn {
+    cursor: pointer;
+}
+
+.ksv-vereine__status {
+    margin-top: 0.5rem;
+    font-size: 0.9em;
+}
+
+.ksv-vereine__filters {
+    border: 0;
+    margin: 1rem 0 0;
+    padding: 0;
+}
+
+.ksv-vereine__filter-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.ksv-vereine__filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--ksv-card-border);
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.ksv-vereine__layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ksv-gap);
+    align-items: start;
+}
+
+.ksv-vereine__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ksv-gap);
+    max-height: 560px;
+    overflow-y: auto;
+}
+
+.ksv-vereine__map {
+    min-height: 560px;
+    border-radius: var(--ksv-radius);
+    border: 1px solid var(--ksv-card-border);
+}
+
+.ksv-card {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: var(--ksv-gap);
+    padding: var(--ksv-gap);
+    background: var(--ksv-card-bg);
+    border: 1px solid var(--ksv-card-border);
+    border-radius: var(--ksv-radius);
+    text-decoration: none;
+    color: inherit;
+}
+
+.ksv-card--linked:hover,
+.ksv-card--linked:focus-visible {
+    border-color: var(--ksv-link-color);
+    outline: 2px solid var(--ksv-link-color);
+    outline-offset: 2px;
+}
+
+.ksv-card__logo {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.ksv-card__title {
+    margin: 0 0 0.35rem;
+    font-size: 1.1rem;
+}
+
+.ksv-card__address,
+.ksv-card__url {
+    margin: 0 0 0.35rem;
+    font-size: 0.95em;
+}
+
+.ksv-card__url {
+    color: var(--ksv-link-color);
+    word-break: break-all;
+}
+
+.ksv-card__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-bottom: 0.35rem;
+}
+
+.ksv-card__tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.8em;
+    background: var(--ksv-tag-bg);
+    color: var(--ksv-tag-color);
+    border-radius: 4px;
+}
+
+.ksv-popup__link {
+    color: var(--ksv-link-color);
+}
+
+@media (max-width: 900px) {
+    .ksv-vereine__layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ksv-vereine__map-wrap {
+        order: -1;
+    }
+
+    .ksv-vereine__list,
+    .ksv-vereine__map {
+        max-height: none;
+        min-height: 320px;
+    }
+}

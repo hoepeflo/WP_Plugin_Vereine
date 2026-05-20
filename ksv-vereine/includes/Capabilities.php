@@ -41,8 +41,96 @@ final class Capabilities
     {
         add_action('init', [self::class, 'assign_role_caps'], 20);
         add_action('init', [self::class, 'sync_whitelist_on_load'], 99);
+        add_filter('user_has_cap', [$this, 'grant_dynamic_caps'], 10, 4);
         add_filter('map_meta_cap', [$this, 'restrict_delete'], 10, 4);
         add_action('update_option_' . Settings::OPTION_KEY, [$this, 'sync_whitelist_from_settings'], 10, 2);
+    }
+
+    /**
+     * Capability map for register_post_type() — explicit keys so „Neuer Verein“ uses create_ksv_vereins.
+     *
+     * @return array<string, string>
+     */
+    public static function post_type_capabilities(): array
+    {
+        return [
+            'edit_post'              => 'edit_ksv_verein',
+            'read_post'              => 'read_ksv_verein',
+            'delete_post'            => 'delete_ksv_verein',
+            'edit_posts'             => 'edit_ksv_vereins',
+            'edit_others_posts'      => 'edit_others_ksv_vereins',
+            'publish_posts'          => 'publish_ksv_vereins',
+            'read_private_posts'     => 'read_private_ksv_vereins',
+            'delete_posts'           => 'delete_ksv_vereins',
+            'delete_private_posts'   => 'delete_private_ksv_vereins',
+            'delete_published_posts' => 'delete_published_ksv_vereins',
+            'delete_others_posts'    => 'delete_others_ksv_vereins',
+            'edit_private_posts'     => 'edit_private_ksv_vereins',
+            'edit_published_posts'   => 'edit_published_ksv_vereins',
+            'create_posts'           => 'create_ksv_vereins',
+            'read'                   => 'read',
+        ];
+    }
+
+    /**
+     * Ensures Vereins-CRUD in the admin even when role caps were not persisted (e.g. after manual install).
+     *
+     * @param array<string, bool> $allcaps
+     * @param list<string>        $caps
+     * @param array<int, mixed>   $args
+     * @return array<string, bool>
+     */
+    public function grant_dynamic_caps(array $allcaps, array $caps, array $args, \WP_User $user): array
+    {
+        unset($caps, $args);
+
+        if (self::user_can_edit_vereine($user, $allcaps)) {
+            foreach (self::WHITELIST_CAPS as $cap) {
+                $allcaps[$cap] = true;
+            }
+        }
+
+        if (self::user_can_delete_vereine($user, $allcaps)) {
+            foreach (self::EDIT_CAPS as $cap) {
+                $allcaps[$cap] = true;
+            }
+        }
+
+        return $allcaps;
+    }
+
+    /**
+     * @param array<string, bool> $allcaps
+     */
+    private static function user_can_edit_vereine(\WP_User $user, array $allcaps): bool
+    {
+        if (! empty($allcaps['manage_options'])) {
+            return true;
+        }
+
+        if (in_array('administrator', (array) $user->roles, true)) {
+            return true;
+        }
+
+        if (in_array('editor', (array) $user->roles, true)) {
+            return true;
+        }
+
+        $whitelist = Settings::get()['whitelist_users'] ?? [];
+        if (! is_array($whitelist)) {
+            return false;
+        }
+
+        return in_array($user->ID, array_map('intval', $whitelist), true);
+    }
+
+    /**
+     * @param array<string, bool> $allcaps
+     */
+    private static function user_can_delete_vereine(\WP_User $user, array $allcaps): bool
+    {
+        return ! empty($allcaps['manage_options'])
+            || in_array('administrator', (array) $user->roles, true);
     }
 
     public static function sync_whitelist_on_load(): void

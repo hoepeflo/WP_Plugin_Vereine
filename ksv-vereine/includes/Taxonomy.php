@@ -82,19 +82,92 @@ final class Taxonomy
     public static function term_ids_from_names(array $names): array
     {
         $ids = [];
-        $flip = array_flip(self::TERMS);
 
         foreach ($names as $name) {
-            $slug = array_search($name, $flip, true);
-            if ($slug === false) {
-                continue;
+            $term = get_term_by('name', $name, self::SLUG);
+            if (! $term instanceof \WP_Term) {
+                $flip = array_flip(self::TERMS);
+                $slug = array_search($name, $flip, true);
+                if ($slug !== false) {
+                    $term = get_term_by('slug', (string) $slug, self::SLUG);
+                }
             }
-            $term = get_term_by('slug', (string) $slug, self::SLUG);
             if ($term instanceof \WP_Term) {
                 $ids[] = (int) $term->term_id;
             }
         }
 
         return $ids;
+    }
+
+    /**
+     * @return list<\WP_Term>
+     */
+    public static function get_all_terms(): array
+    {
+        $terms = get_terms([
+            'taxonomy'   => self::SLUG,
+            'hide_empty' => false,
+            'orderby'    => 'name',
+            'order'      => 'ASC',
+        ]);
+
+        if (is_wp_error($terms) || $terms === []) {
+            self::seed_terms();
+            $terms = get_terms([
+                'taxonomy'   => self::SLUG,
+                'hide_empty' => false,
+                'orderby'    => 'name',
+                'order'      => 'ASC',
+            ]);
+        }
+
+        if (is_wp_error($terms)) {
+            return [];
+        }
+
+        return array_values(array_filter($terms, static fn ($t): bool => $t instanceof \WP_Term));
+    }
+
+    /**
+     * @return list<array{slug: string, name: string}>
+     */
+    public static function get_all_for_frontend(): array
+    {
+        $terms = self::get_all_terms();
+        if ($terms === []) {
+            return array_map(
+                static fn (string $slug, string $name): array => ['slug' => $slug, 'name' => $name],
+                array_keys(self::TERMS),
+                array_values(self::TERMS)
+            );
+        }
+
+        return array_map(
+            static fn (\WP_Term $term): array => [
+                'slug' => $term->slug,
+                'name' => $term->name,
+            ],
+            $terms
+        );
+    }
+
+    public static function count_vereine_for_term(int $term_id): int
+    {
+        $query = new \WP_Query([
+            'post_type'      => PostType::SLUG,
+            'post_status'    => 'any',
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'tax_query'      => [
+                [
+                    'taxonomy' => self::SLUG,
+                    'field'    => 'term_id',
+                    'terms'    => $term_id,
+                ],
+            ],
+        ]);
+
+        return (int) $query->found_posts;
     }
 }

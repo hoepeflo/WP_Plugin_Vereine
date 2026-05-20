@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "ksv/vereine",
+  "version": "1.0.0",
+  "title": "KSV Vereine",
+  "category": "widgets",
+  "icon": "location-alt",
+  "description": "Mitgliedsvereine mit Karte und Suche anzeigen.",
+  "textdomain": "ksv-vereine",
+  "supports": {
+    "html": false
+  },
+  "editorScript": "file:./index.js"
+}

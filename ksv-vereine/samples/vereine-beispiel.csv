@@ -1,0 +1,4 @@
+name,street,zip,city,website,disziplinen,active
+SV Musterstadt,Musterstraße 1,12345,Musterstadt,https://example.de,"Luftdruckwaffen;Bogen",1
+Schützengilde Beispielhausen,Am Schützenhaus 3,54321,Beispielhausen,,"Feuerwaffen;Flinte;Dart",1
+Bogenschützen Nord,Ringweg 7,98765,Norddorf,https://bogen.example.org,Bogen,0

@@ -4,6 +4,8 @@
  * @var list<\WP_User|object> $users
  */
 
+namespace KSV\Vereine;
+
 if (! defined('ABSPATH')) {
     exit;
 }

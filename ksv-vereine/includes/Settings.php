@@ -87,8 +87,12 @@ final class Settings
      * @param array<string, mixed> $input
      * @return array<string, mixed>
      */
-    public function sanitize(array $input): array
+    public function sanitize(mixed $input): array
     {
+        if (! is_array($input)) {
+            $input = [];
+        }
+
         $old      = self::get();
         $defaults = self::defaults();
 

@@ -37,13 +37,24 @@ final class Taxonomy
             'hierarchical'      => false,
             'show_in_rest'      => false,
         ]);
+
+        self::seed_terms();
     }
 
     public static function seed_terms(): void
     {
+        if (! taxonomy_exists(self::SLUG)) {
+            return;
+        }
+
         foreach (self::TERMS as $slug => $name) {
-            if (! term_exists($slug, self::SLUG)) {
-                wp_insert_term($name, self::SLUG, ['slug' => $slug]);
+            if (term_exists($slug, self::SLUG)) {
+                continue;
+            }
+
+            $result = wp_insert_term($name, self::SLUG, ['slug' => $slug]);
+            if (is_wp_error($result)) {
+                continue;
             }
         }
     }

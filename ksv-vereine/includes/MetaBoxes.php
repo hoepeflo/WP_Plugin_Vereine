@@ -92,6 +92,18 @@ final class MetaBoxes
             return;
         }
 
+        if ($terms === []) {
+            Taxonomy::seed_terms();
+            $terms = get_terms(['taxonomy' => Taxonomy::SLUG, 'hide_empty' => false]);
+            if (is_wp_error($terms) || $terms === []) {
+                echo '<p>' . esc_html__(
+                    'Keine Disziplinen verfügbar. Bitte Plugin deaktivieren und erneut aktivieren oder den Administrator kontaktieren.',
+                    'ksv-vereine'
+                ) . '</p>';
+                return;
+            }
+        }
+
         echo '<fieldset class="ksv-disciplines-fieldset">';
         echo '<legend class="screen-reader-text">' . esc_html__('Disziplinen', 'ksv-vereine') . '</legend>';
 

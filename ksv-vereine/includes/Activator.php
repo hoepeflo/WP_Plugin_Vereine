@@ -8,11 +8,13 @@ final class Activator
 {
     public static function activate(): void
     {
+        // register() only hooks init; on activation init has already run.
+        (new PostType())->register_post_type();
+        (new Taxonomy())->register_taxonomy();
+
         (new PostType())->register();
         (new Taxonomy())->register();
         flush_rewrite_rules();
-
-        Taxonomy::seed_terms();
         Capabilities::assign_role_caps();
         Capabilities::sync_whitelist_on_load();
     }

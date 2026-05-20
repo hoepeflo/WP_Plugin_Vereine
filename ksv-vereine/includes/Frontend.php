@@ -78,11 +78,7 @@ final class Frontend
                 'openWebsite'    => __('Webseite von %s öffnen', 'ksv-vereine'),
                 'mapHint'        => __('Die Karte ergänzt die Liste. Alle Vereinsinformationen finden Sie in der Liste.', 'ksv-vereine'),
             ],
-            'disciplines' => array_map(
-                static fn (string $slug, string $name): array => ['slug' => $slug, 'name' => $name],
-                array_keys(Taxonomy::TERMS),
-                array_values(Taxonomy::TERMS)
-            ),
+            'disciplines' => Taxonomy::get_all_for_frontend(),
         ]);
     }
 }

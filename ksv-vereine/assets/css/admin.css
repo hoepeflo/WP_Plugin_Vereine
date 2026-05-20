@@ -29,3 +29,29 @@
 .ksv-geo-error {
     color: #b32d2e;
 }
+
+.ksv-disziplinen-table {
+    max-width: 960px;
+}
+
+.ksv-disziplinen-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.ksv-inline-delete-form {
+    display: inline;
+    margin: 0;
+}
+
+.ksv-delete-disabled {
+    color: #a7aaad;
+    cursor: not-allowed;
+}
+
+.ksv-disziplin-form {
+    max-width: 640px;
+    margin-bottom: 2rem;
+}

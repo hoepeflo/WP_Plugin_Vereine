@@ -26,6 +26,7 @@ final class Plugin
         (new MetaBoxes())->register();
         (new Capabilities())->register();
         (new Settings())->register();
+        (new DisziplinAdmin())->register();
         (new Geocoding())->register();
         (new RestApi())->register();
         (new Import())->register();

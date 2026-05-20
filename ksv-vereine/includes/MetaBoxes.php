@@ -83,25 +83,16 @@ final class MetaBoxes
 
     public function render_disciplines_box(\WP_Post $post): void
     {
-        $terms     = get_terms(['taxonomy' => Taxonomy::SLUG, 'hide_empty' => false]);
-        $selected  = wp_get_object_terms($post->ID, Taxonomy::SLUG, ['fields' => 'ids']);
-        $selected  = is_array($selected) ? array_map('intval', $selected) : [];
-
-        if (is_wp_error($terms)) {
-            echo '<p>' . esc_html__('Disziplinen konnten nicht geladen werden.', 'ksv-vereine') . '</p>';
-            return;
-        }
+        $terms    = Taxonomy::get_all_terms();
+        $selected = wp_get_object_terms($post->ID, Taxonomy::SLUG, ['fields' => 'ids']);
+        $selected = is_array($selected) ? array_map('intval', $selected) : [];
 
         if ($terms === []) {
-            Taxonomy::seed_terms();
-            $terms = get_terms(['taxonomy' => Taxonomy::SLUG, 'hide_empty' => false]);
-            if (is_wp_error($terms) || $terms === []) {
-                echo '<p>' . esc_html__(
-                    'Keine Disziplinen verfügbar. Bitte Plugin deaktivieren und erneut aktivieren oder den Administrator kontaktieren.',
-                    'ksv-vereine'
-                ) . '</p>';
-                return;
-            }
+            echo '<p>' . esc_html__(
+                'Keine Kategorien verfügbar. Bitte unter „Kategorien“ anlegen oder den Administrator kontaktieren.',
+                'ksv-vereine'
+            ) . '</p>';
+            return;
         }
 
         echo '<fieldset class="ksv-disciplines-fieldset">';

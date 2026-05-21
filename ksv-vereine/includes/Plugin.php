@@ -29,6 +29,7 @@ final class Plugin
         (new DisziplinAdmin())->register();
         (new Geocoding())->register();
         (new RestApi())->register();
+        (new Suggestions())->register();
         (new Import())->register();
         (new Shortcode())->register();
         (new Block())->register();

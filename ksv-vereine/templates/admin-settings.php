@@ -41,6 +41,25 @@ if (! defined('ABSPATH')) {
                 </td>
             </tr>
             <tr>
+                <th scope="row"><label for="suggestion_notify_email"><?php esc_html_e('E-Mail für Änderungsvorschläge', 'ksv-vereine'); ?></label></th>
+                <td>
+                    <input
+                        type="email"
+                        class="large-text"
+                        id="suggestion_notify_email"
+                        name="<?php echo esc_attr(Settings::OPTION_KEY); ?>[suggestion_notify_email]"
+                        value="<?php echo esc_attr((string) ($settings['suggestion_notify_email'] ?? '')); ?>"
+                        placeholder="<?php echo esc_attr((string) get_option('admin_email')); ?>"
+                    />
+                    <p class="description">
+                        <?php esc_html_e(
+                            'Empfänger für Änderungsvorschläge aus dem Frontend. Wenn leer, wird die WordPress-Admin-E-Mail verwendet (WP Mail SMTP).',
+                            'ksv-vereine'
+                        ); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
                 <th scope="row"><?php esc_html_e('Benutzer-Whitelist', 'ksv-vereine'); ?></th>
                 <td>
                     <p class="description"><?php esc_html_e('Diese Benutzer dürfen Vereine pflegen (zusätzlich zu Administratoren und Redakteuren).', 'ksv-vereine'); ?></p>

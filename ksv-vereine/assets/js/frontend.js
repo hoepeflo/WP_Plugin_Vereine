@@ -23,6 +23,13 @@
     let searchQuery = '';
     const selectedDisciplines = new Set();
 
+    const suggestionForm = root.querySelector('[data-ksv-suggestion-form]');
+    const suggestionVereinSelect = root.querySelector('[data-ksv-suggestion-verein]');
+    const suggestionFields = root.querySelector('[data-ksv-suggestion-fields]');
+    const suggestionDisciplinesEl = root.querySelector('[data-ksv-suggestion-disciplines]');
+    const suggestionStatusEl = root.querySelector('[data-ksv-suggestion-status]');
+    const suggestionSubmitBtn = root.querySelector('[data-ksv-suggestion-submit]');
+
     function initFilters() {
         ksvVereine.disciplines.forEach(function (d) {
             const id = 'ksv-filter-' + d.slug;
@@ -278,7 +285,245 @@
         }
     });
 
+    function updateSuggestionClubOptions(vereine) {
+        if (!suggestionVereinSelect) {
+            return;
+        }
+
+        const current = suggestionVereinSelect.value;
+        const placeholder =
+            ksvVereine.i18n.suggestionSelectPlaceholder || 'Bitte Verein wählen …';
+        suggestionVereinSelect.innerHTML =
+            '<option value="">' + escapeHtml(placeholder) + '</option>';
+
+        vereine.forEach(function (v) {
+            const opt = document.createElement('option');
+            opt.value = String(v.id);
+            opt.textContent = v.name;
+            suggestionVereinSelect.appendChild(opt);
+        });
+
+        if (current && vereine.some(function (v) { return String(v.id) === current; })) {
+            suggestionVereinSelect.value = current;
+        }
+    }
+
+    function loadSuggestionClubOptions() {
+        fetch(ksvVereine.restUrl, {
+            headers: {
+                'X-WP-Nonce': ksvVereine.nonce,
+            },
+        })
+            .then(function (res) {
+                return res.json();
+            })
+            .then(function (data) {
+                if (data && Array.isArray(data.vereine)) {
+                    updateSuggestionClubOptions(data.vereine);
+                }
+            })
+            .catch(function () {
+                /* Dropdown bleibt leer; Nutzer kann erneut laden */
+            });
+    }
+
+    function initSuggestionDisciplines() {
+        if (!suggestionDisciplinesEl) {
+            return;
+        }
+
+        suggestionDisciplinesEl.innerHTML = '';
+        ksvVereine.disciplines.forEach(function (d) {
+            const id = 'ksv-suggestion-disc-' + d.slug;
+            const label = document.createElement('label');
+            label.className = 'ksv-suggestion-form__discipline';
+            label.innerHTML =
+                '<input type="checkbox" id="' +
+                id +
+                '" name="disziplinen[]" value="' +
+                d.slug +
+                '" /> ' +
+                escapeHtml(d.name);
+            suggestionDisciplinesEl.appendChild(label);
+        });
+    }
+
+    function fillSuggestionForm(verein) {
+        if (!suggestionForm || !verein) {
+            return;
+        }
+
+        suggestionForm.elements.name.value = verein.name || '';
+        suggestionForm.elements.street.value = verein.street || '';
+        suggestionForm.elements.zip.value = verein.zip || '';
+        suggestionForm.elements.city.value = verein.city || '';
+        suggestionForm.elements.website.value = verein.website || '';
+        suggestionForm.elements.comment.value = '';
+        suggestionForm.elements.contact_email.value = '';
+
+        const slugs = (verein.disziplinen || []).map(function (t) {
+            return t.slug;
+        });
+        suggestionDisciplinesEl.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
+            input.checked = slugs.indexOf(input.value) !== -1;
+        });
+    }
+
+    function setSuggestionFieldsEnabled(enabled) {
+        if (suggestionFields) {
+            suggestionFields.disabled = !enabled;
+        }
+        if (suggestionSubmitBtn) {
+            suggestionSubmitBtn.disabled = !enabled;
+        }
+    }
+
+    function setSuggestionStatus(message, isError) {
+        if (!suggestionStatusEl) {
+            return;
+        }
+        if (!message) {
+            suggestionStatusEl.hidden = true;
+            suggestionStatusEl.textContent = '';
+            suggestionStatusEl.classList.remove('ksv-suggestion-form__status--error');
+            return;
+        }
+        suggestionStatusEl.hidden = false;
+        suggestionStatusEl.textContent = message;
+        suggestionStatusEl.classList.toggle('ksv-suggestion-form__status--error', !!isError);
+    }
+
+    function getSelectedSuggestionDisciplines() {
+        const slugs = [];
+        if (!suggestionDisciplinesEl) {
+            return slugs;
+        }
+        suggestionDisciplinesEl.querySelectorAll('input[type="checkbox"]:checked').forEach(function (input) {
+            slugs.push(input.value);
+        });
+        return slugs;
+    }
+
+    function initSuggestionForm() {
+        if (!suggestionForm || !suggestionVereinSelect) {
+            return;
+        }
+
+        initSuggestionDisciplines();
+        setSuggestionFieldsEnabled(false);
+
+        suggestionVereinSelect.addEventListener('change', function () {
+            const id = parseInt(suggestionVereinSelect.value, 10);
+            if (!id) {
+                setSuggestionFieldsEnabled(false);
+                setSuggestionStatus('');
+                return;
+            }
+
+            fetch(ksvVereine.restUrl, {
+                headers: {
+                    'X-WP-Nonce': ksvVereine.nonce,
+                },
+            })
+                .then(function (res) {
+                    return res.json();
+                })
+                .then(function (data) {
+                    const verein = (data.vereine || []).find(function (v) {
+                        return v.id === id;
+                    });
+                    if (verein) {
+                        fillSuggestionForm(verein);
+                        setSuggestionFieldsEnabled(true);
+                        setSuggestionStatus('');
+                    }
+                })
+                .catch(function () {
+                    setSuggestionStatus(ksvVereine.i18n.suggestionError, true);
+                    setSuggestionFieldsEnabled(false);
+                });
+        });
+
+        suggestionForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const id = parseInt(suggestionVereinSelect.value, 10);
+            if (!id) {
+                setSuggestionStatus(ksvVereine.i18n.suggestionSelectClub, true);
+                return;
+            }
+
+            const url =
+                ksvVereine.suggestionUrl.replace(/\/$/, '') +
+                '/' +
+                id +
+                '/aenderungsvorschlag';
+
+            const payload = {
+                name: suggestionForm.elements.name.value.trim(),
+                street: suggestionForm.elements.street.value.trim(),
+                zip: suggestionForm.elements.zip.value.trim(),
+                city: suggestionForm.elements.city.value.trim(),
+                website: suggestionForm.elements.website.value.trim(),
+                disziplinen: getSelectedSuggestionDisciplines(),
+                comment: suggestionForm.elements.comment.value.trim(),
+                contact_email: suggestionForm.elements.contact_email.value.trim(),
+                website_honeypot: suggestionForm.elements.website_honeypot
+                    ? suggestionForm.elements.website_honeypot.value
+                    : '',
+            };
+
+            setSuggestionStatus(ksvVereine.i18n.suggestionSubmitting, false);
+            if (suggestionSubmitBtn) {
+                suggestionSubmitBtn.disabled = true;
+            }
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-WP-Nonce': ksvVereine.nonce,
+                },
+                body: JSON.stringify(payload),
+            })
+                .then(function (res) {
+                    return res.json().then(function (data) {
+                        return { ok: res.ok, data: data };
+                    });
+                })
+                .then(function (result) {
+                    if (result.ok && result.data && result.data.success) {
+                        setSuggestionStatus(
+                            result.data.message || ksvVereine.i18n.suggestionSuccess,
+                            false
+                        );
+                        suggestionForm.reset();
+                        setSuggestionFieldsEnabled(false);
+                        suggestionVereinSelect.value = '';
+                        return;
+                    }
+
+                    const message =
+                        (result.data && result.data.message) ||
+                        ksvVereine.i18n.suggestionError;
+                    setSuggestionStatus(message, true);
+                    setSuggestionFieldsEnabled(true);
+                })
+                .catch(function () {
+                    setSuggestionStatus(ksvVereine.i18n.suggestionError, true);
+                    setSuggestionFieldsEnabled(true);
+                })
+                .finally(function () {
+                    if (suggestionSubmitBtn && suggestionVereinSelect.value) {
+                        suggestionSubmitBtn.disabled = false;
+                    }
+                });
+        });
+    }
+
     initFilters();
     initMap();
+    initSuggestionForm();
+    loadSuggestionClubOptions();
     loadVereine();
 })();

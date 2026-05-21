@@ -59,9 +59,10 @@ final class Frontend
         $settings = Settings::get();
 
         wp_localize_script('ksv-vereine-frontend', 'ksvVereine', [
-            'restUrl'   => rest_url('ksv/v1/vereine'),
-            'geocodeUrl'=> rest_url('ksv/v1/geocode'),
-            'nonce'     => wp_create_nonce('wp_rest'),
+            'restUrl'          => rest_url('ksv/v1/vereine'),
+            'suggestionUrl'    => rest_url('ksv/v1/vereine'),
+            'geocodeUrl'       => rest_url('ksv/v1/geocode'),
+            'nonce'            => wp_create_nonce('wp_rest'),
             'map'       => [
                 'lat'  => (float) ($settings['map_lat'] ?? 51.1657),
                 'lng'  => (float) ($settings['map_lng'] ?? 10.4515),
@@ -77,6 +78,12 @@ final class Frontend
                 'toCard'         => __('Zur Vereinsinfo', 'ksv-vereine'),
                 'openWebsite'    => __('Webseite von %s öffnen', 'ksv-vereine'),
                 'mapHint'        => __('Die Karte ergänzt die Liste. Alle Vereinsinformationen finden Sie in der Liste.', 'ksv-vereine'),
+                'suggestionSuccess' => __('Ihr Änderungsvorschlag wurde übermittelt. Vielen Dank!', 'ksv-vereine'),
+                'suggestionError'   => __('Die Übermittlung ist fehlgeschlagen. Bitte versuchen Sie es erneut.', 'ksv-vereine'),
+                'suggestionSelectClub' => __('Bitte wählen Sie zuerst einen Verein aus.', 'ksv-vereine'),
+                'suggestionSelectPlaceholder' => __('Bitte Verein wählen …', 'ksv-vereine'),
+                'suggestionSubmitting' => __('Wird gesendet …', 'ksv-vereine'),
+                'suggestionSubmit'  => __('Änderungen einreichen', 'ksv-vereine'),
             ],
             'disciplines' => Taxonomy::get_all_for_frontend(),
         ]);

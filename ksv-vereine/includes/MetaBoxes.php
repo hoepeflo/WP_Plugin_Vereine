@@ -47,18 +47,45 @@ final class MetaBoxes
 
         wp_enqueue_media();
         wp_enqueue_style(
+            'leaflet',
+            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+            [],
+            '1.9.4'
+        );
+        wp_enqueue_style(
             'ksv-vereine-admin',
             KSV_VEREINE_URL . 'assets/css/admin.css',
-            [],
+            ['leaflet'],
             KSV_VEREINE_VERSION
+        );
+        wp_enqueue_script(
+            'leaflet',
+            'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
+            [],
+            '1.9.4',
+            true
         );
         wp_enqueue_script(
             'ksv-vereine-admin',
             KSV_VEREINE_URL . 'assets/js/admin.js',
-            ['jquery'],
+            ['jquery', 'leaflet'],
             KSV_VEREINE_VERSION,
             true
         );
+
+        $settings = Settings::get();
+
+        wp_localize_script('ksv-vereine-admin', 'ksvAdminMap', [
+            'lat'  => (float) ($settings['map_lat'] ?? 51.1657),
+            'lng'  => (float) ($settings['map_lng'] ?? 10.4515),
+            'zoom' => (int) ($settings['map_zoom'] ?? 8),
+            'i18n' => [
+                'mapHint' => __(
+                    'Klicken Sie auf die Karte oder ziehen Sie den Marker, um die Position zu setzen.',
+                    'ksv-vereine'
+                ),
+            ],
+        ]);
     }
 
     public function render_details_box(\WP_Post $post): void

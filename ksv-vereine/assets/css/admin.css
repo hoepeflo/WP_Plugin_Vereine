@@ -30,6 +30,40 @@
     color: #b32d2e;
 }
 
+.ksv-coords-cell {
+    max-width: 640px;
+}
+
+.ksv-manual-coords-label {
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.ksv-coords-picker {
+    margin-top: 0.25rem;
+}
+
+.ksv-coords-map {
+    width: 100%;
+    height: 320px;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+    z-index: 0;
+}
+
+.ksv-coords-map-hint {
+    margin-bottom: 0.25rem;
+}
+
+.ksv-coords-display-wrap {
+    margin: 0.5rem 0 0;
+}
+
+.ksv-coords-display {
+    font-family: monospace;
+}
+
 .ksv-disziplinen-table {
     max-width: 960px;
 }

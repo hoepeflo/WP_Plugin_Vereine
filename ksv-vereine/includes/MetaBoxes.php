@@ -99,9 +99,10 @@ final class MetaBoxes
         $logo_id = (int) get_post_meta($post->ID, '_ksv_logo_id', true);
         $active  = get_post_meta($post->ID, '_ksv_active', true);
         $active  = ($active === '' || $active === '1');
-        $lat     = (string) get_post_meta($post->ID, '_ksv_lat', true);
-        $lng     = (string) get_post_meta($post->ID, '_ksv_lng', true);
-        $geo_err = (string) get_post_meta($post->ID, '_ksv_geo_error', true);
+        $lat           = (string) get_post_meta($post->ID, '_ksv_lat', true);
+        $lng           = (string) get_post_meta($post->ID, '_ksv_lng', true);
+        $geo_err       = (string) get_post_meta($post->ID, '_ksv_geo_error', true);
+        $manual_coords = get_post_meta($post->ID, '_ksv_manual_coords', true) === '1';
 
         $logo_url = $logo_id > 0 ? wp_get_attachment_image_url($logo_id, 'thumbnail') : '';
 
@@ -165,6 +166,8 @@ final class MetaBoxes
         $logo_id = isset($_POST['ksv_logo_id']) ? absint($_POST['ksv_logo_id']) : 0;
         $active  = isset($_POST['ksv_active']) ? '1' : '0';
 
+        $manual_coords   = isset($_POST['ksv_manual_coords']) ? '1' : '0';
+        $was_manual      = get_post_meta($post_id, '_ksv_manual_coords', true) === '1';
         $address_changed = $this->address_changed($post_id, $street, $zip, $city);
 
         update_post_meta($post_id, '_ksv_street', $street);
@@ -173,6 +176,7 @@ final class MetaBoxes
         update_post_meta($post_id, '_ksv_website', $website);
         update_post_meta($post_id, '_ksv_logo_id', $logo_id);
         update_post_meta($post_id, '_ksv_active', $active);
+        update_post_meta($post_id, '_ksv_manual_coords', $manual_coords);
 
         $discipline_ids = [];
         if (isset($_POST['ksv_disziplinen']) && is_array($_POST['ksv_disziplinen'])) {
@@ -180,10 +184,50 @@ final class MetaBoxes
         }
         wp_set_object_terms($post_id, $discipline_ids, Taxonomy::SLUG);
 
-        if ($address_changed) {
+        if ($manual_coords === '1') {
+            $this->save_manual_coordinates($post_id);
+        } elseif ($was_manual || $address_changed) {
             delete_post_meta($post_id, '_ksv_geo_error');
             Geocoding::geocode_post($post_id);
         }
+    }
+
+    private function save_manual_coordinates(int $post_id): void
+    {
+        $lat_raw = isset($_POST['ksv_lat']) ? wp_unslash((string) $_POST['ksv_lat']) : '';
+        $lng_raw = isset($_POST['ksv_lng']) ? wp_unslash((string) $_POST['ksv_lng']) : '';
+
+        $lat = $this->parse_coordinate($lat_raw, -90.0, 90.0);
+        $lng = $this->parse_coordinate($lng_raw, -180.0, 180.0);
+
+        if ($lat === null || $lng === null) {
+            update_post_meta(
+                $post_id,
+                '_ksv_geo_error',
+                __('Bitte setzen Sie eine gültige Position auf der Karte.', 'ksv-vereine')
+            );
+
+            return;
+        }
+
+        update_post_meta($post_id, '_ksv_lat', (string) $lat);
+        update_post_meta($post_id, '_ksv_lng', (string) $lng);
+        delete_post_meta($post_id, '_ksv_geo_error');
+    }
+
+    private function parse_coordinate(string $value, float $min, float $max): ?float
+    {
+        $value = trim(str_replace(',', '.', $value));
+        if ($value === '' || ! is_numeric($value)) {
+            return null;
+        }
+
+        $coord = (float) $value;
+        if ($coord < $min || $coord > $max) {
+            return null;
+        }
+
+        return $coord;
     }
 
     private function address_changed(int $post_id, string $street, string $zip, string $city): bool

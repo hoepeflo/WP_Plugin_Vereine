@@ -46,12 +46,13 @@ final class Settings
     public static function defaults(): array
     {
         return [
-            'ors_api_key'        => '',
-            'map_lat'            => '51.1657',
-            'map_lng'            => '10.4515',
-            'map_zoom'           => 8,
-            'placeholder_logo_id' => 0,
-            'whitelist_users'    => [],
+            'ors_api_key'              => '',
+            'map_lat'                  => '51.1657',
+            'map_lng'                  => '10.4515',
+            'map_zoom'                 => 8,
+            'placeholder_logo_id'      => 0,
+            'whitelist_users'          => [],
+            'suggestion_notify_email'  => '',
         ];
     }
 
@@ -83,6 +84,18 @@ final class Settings
         return (int) ($settings[$key] ?? 0);
     }
 
+    public static function get_suggestion_notify_email(): string
+    {
+        $configured = self::get_string('suggestion_notify_email');
+        if ($configured !== '' && is_email($configured)) {
+            return $configured;
+        }
+
+        $admin = get_option('admin_email');
+
+        return is_string($admin) && is_email($admin) ? $admin : '';
+    }
+
     /**
      * @param array<string, mixed> $input
      * @return array<string, mixed>
@@ -102,7 +115,10 @@ final class Settings
             'map_lng'             => isset($input['map_lng']) ? (string) (float) $input['map_lng'] : $defaults['map_lng'],
             'map_zoom'            => isset($input['map_zoom']) ? absint($input['map_zoom']) : (int) $defaults['map_zoom'],
             'placeholder_logo_id' => isset($input['placeholder_logo_id']) ? absint($input['placeholder_logo_id']) : 0,
-            'whitelist_users'   => [],
+            'whitelist_users'         => [],
+            'suggestion_notify_email' => isset($input['suggestion_notify_email'])
+                ? sanitize_email((string) $input['suggestion_notify_email'])
+                : '',
         ];
 
         if (isset($input['whitelist_users']) && is_array($input['whitelist_users'])) {

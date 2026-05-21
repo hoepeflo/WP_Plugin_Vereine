@@ -42,7 +42,7 @@ if (! defined('ABSPATH')) {
 
     <section class="ksv-vereine__suggestions" data-ksv-suggestions aria-labelledby="ksv-suggestions-heading">
         <h2 id="ksv-suggestions-heading" class="ksv-vereine__suggestions-title">
-            <?php esc_html_e('Daten ändern vorschlagen', 'ksv-vereine'); ?>
+            <?php esc_html_e('Datenänderung vorschlagen', 'ksv-vereine'); ?>
         </h2>
         <p class="ksv-vereine__suggestions-intro">
             <?php esc_html_e(

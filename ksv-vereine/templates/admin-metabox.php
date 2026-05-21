@@ -9,6 +9,7 @@
  * @var string $lat
  * @var string $lng
  * @var string $geo_err
+ * @var bool   $manual_coords
  * @var string $logo_url
  */
 

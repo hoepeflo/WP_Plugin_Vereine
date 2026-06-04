@@ -46,7 +46,7 @@ if (! defined('ABSPATH')) {
         </h2>
         <p class="ksv-vereine__suggestions-intro">
             <?php esc_html_e(
-                'Sind die Angaben zu Ihrem Verein veraltet oder fehlerhaft? Wählen Sie Ihren Verein und schlagen Sie Korrekturen vor. Der Verband prüft die Angaben und übernimmt sie nach Freigabe.',
+                'Sind die Angaben zu Deinem Verein veraltet oder fehlerhaft? Wähle Deinen Verein und schlage Korrekturen vor. Der Verband prüft die Angaben und übernimmt sie nach Freigabe.',
                 'ksv-vereine'
             ); ?>
         </p>

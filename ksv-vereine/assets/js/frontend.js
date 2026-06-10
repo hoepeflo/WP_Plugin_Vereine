@@ -31,6 +31,20 @@
     const suggestionSubmitBtn = root.querySelector('[data-ksv-suggestion-submit]');
 
     function initFilters() {
+        if (filtersEl.children.length > 0) {
+            filtersEl.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
+                input.addEventListener('change', function () {
+                    if (input.checked) {
+                        selectedDisciplines.add(input.value);
+                    } else {
+                        selectedDisciplines.delete(input.value);
+                    }
+                    loadVereine();
+                });
+            });
+            return;
+        }
+
         ksvVereine.disciplines.forEach(function (d) {
             const id = 'ksv-filter-' + d.slug;
             const label = document.createElement('label');
@@ -524,6 +538,14 @@
     initFilters();
     initMap();
     initSuggestionForm();
-    loadSuggestionClubOptions();
-    loadVereine();
+
+    if (!suggestionVereinSelect || suggestionVereinSelect.options.length <= 1) {
+        loadSuggestionClubOptions();
+    }
+
+    if (ksvVereine.hasSsrList && Array.isArray(ksvVereine.initialVereine)) {
+        updateMap(ksvVereine.initialVereine);
+    } else {
+        loadVereine();
+    }
 })();

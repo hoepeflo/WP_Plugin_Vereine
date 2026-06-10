@@ -3,6 +3,11 @@
 if (! defined('ABSPATH')) {
     exit;
 }
+
+use KSV\Vereine\VereinRenderer;
+
+/** @var list<array{slug: string, name: string}> $disciplines */
+/** @var list<array<string, mixed>> $vereine */
 ?>
 <div class="ksv-vereine" data-ksv-vereine>
     <p class="ksv-vereine__map-hint screen-reader-text"><?php esc_html_e('Die Karte ergänzt die Liste. Alle Vereinsinformationen finden Sie in der Liste.', 'ksv-vereine'); ?></p>
@@ -25,14 +30,14 @@ if (! defined('ABSPATH')) {
 
         <fieldset class="ksv-vereine__filters">
             <legend><?php esc_html_e('Nach Disziplin filtern', 'ksv-vereine'); ?></legend>
-            <div class="ksv-vereine__filter-list" data-ksv-filters></div>
+            <div class="ksv-vereine__filter-list" data-ksv-filters><?php echo VereinRenderer::render_filter_chips($disciplines); ?></div>
         </fieldset>
     </div>
 
     <div class="ksv-vereine__layout">
         <div class="ksv-vereine__list-wrap">
-            <div class="ksv-vereine__list" data-ksv-list role="list"></div>
-            <p class="ksv-vereine__empty" data-ksv-empty hidden><?php esc_html_e('Keine Vereine gefunden.', 'ksv-vereine'); ?></p>
+            <div class="ksv-vereine__list" data-ksv-list role="list"><?php echo VereinRenderer::render_list($vereine); ?></div>
+            <p class="ksv-vereine__empty" data-ksv-empty <?php echo $vereine === [] ? '' : 'hidden'; ?>><?php esc_html_e('Keine Vereine gefunden.', 'ksv-vereine'); ?></p>
         </div>
         <div class="ksv-vereine__map-wrap">
             <p class="screen-reader-text"><?php esc_html_e('Interaktive Karte der Vereinsstandorte', 'ksv-vereine'); ?></p>
@@ -55,7 +60,7 @@ if (! defined('ABSPATH')) {
             <div class="ksv-suggestion-form__field">
                 <label for="ksv-suggestion-verein"><?php esc_html_e('Verein', 'ksv-vereine'); ?> <span class="ksv-required">*</span></label>
                 <select id="ksv-suggestion-verein" name="verein_id" required data-ksv-suggestion-verein>
-                    <option value=""><?php esc_html_e('Bitte Verein wählen …', 'ksv-vereine'); ?></option>
+                    <?php echo VereinRenderer::render_suggestion_options($vereine); ?>
                 </select>
             </div>
 
@@ -116,4 +121,5 @@ if (! defined('ABSPATH')) {
             </button>
         </form>
     </section>
+    <?php echo VereinRenderer::render_json_ld($vereine); ?>
 </div>

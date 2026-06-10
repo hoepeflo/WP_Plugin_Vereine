@@ -10,9 +10,10 @@ final class Frontend
 
     public static function render(): string
     {
-        self::enqueue_assets();
+        $disciplines = Taxonomy::get_all_for_frontend();
+        $vereine     = VereinRepository::get_vereine();
 
-        $settings = Settings::get();
+        self::enqueue_assets($vereine);
 
         ob_start();
         include KSV_VEREINE_PATH . 'templates/frontend.php';
@@ -20,7 +21,10 @@ final class Frontend
         return (string) ob_get_clean();
     }
 
-    private static function enqueue_assets(): void
+    /**
+     * @param list<array<string, mixed>> $vereine
+     */
+    private static function enqueue_assets(array $vereine): void
     {
         if (self::$assets_enqueued) {
             return;
@@ -85,7 +89,9 @@ final class Frontend
                 'suggestionSubmitting' => __('Wird gesendet …', 'ksv-vereine'),
                 'suggestionSubmit'  => __('Änderungen einreichen', 'ksv-vereine'),
             ],
-            'disciplines' => Taxonomy::get_all_for_frontend(),
+            'disciplines'    => Taxonomy::get_all_for_frontend(),
+            'initialVereine' => $vereine,
+            'hasSsrList'     => $vereine !== [],
         ]);
     }
 }

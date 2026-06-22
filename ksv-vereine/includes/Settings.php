@@ -51,6 +51,8 @@ final class Settings
             'map_lng'                  => '10.4515',
             'map_zoom'                 => 8,
             'placeholder_logo_id'      => 0,
+            'vereine_page_id'          => 0,
+            'vereinssuche_image_id'    => 0,
             'whitelist_users'          => [],
             'suggestion_notify_email'  => '',
         ];
@@ -114,7 +116,9 @@ final class Settings
             'map_lat'             => isset($input['map_lat']) ? (string) (float) $input['map_lat'] : $defaults['map_lat'],
             'map_lng'             => isset($input['map_lng']) ? (string) (float) $input['map_lng'] : $defaults['map_lng'],
             'map_zoom'            => isset($input['map_zoom']) ? absint($input['map_zoom']) : (int) $defaults['map_zoom'],
-            'placeholder_logo_id' => isset($input['placeholder_logo_id']) ? absint($input['placeholder_logo_id']) : 0,
+            'placeholder_logo_id'   => isset($input['placeholder_logo_id']) ? absint($input['placeholder_logo_id']) : 0,
+            'vereine_page_id'       => isset($input['vereine_page_id']) ? absint($input['vereine_page_id']) : 0,
+            'vereinssuche_image_id' => isset($input['vereinssuche_image_id']) ? absint($input['vereinssuche_image_id']) : 0,
             'whitelist_users'         => [],
             'suggestion_notify_email' => isset($input['suggestion_notify_email'])
                 ? sanitize_email((string) $input['suggestion_notify_email'])

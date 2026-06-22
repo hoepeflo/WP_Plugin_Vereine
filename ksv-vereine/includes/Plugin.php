@@ -33,5 +33,8 @@ final class Plugin
         (new Import())->register();
         (new Shortcode())->register();
         (new Block())->register();
+        (new VereinssucheShortcode())->register();
+        (new VereinssucheBlock())->register();
+        (new DiviModule())->register();
     }
 }

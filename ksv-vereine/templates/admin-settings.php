@@ -41,6 +41,38 @@ if (! defined('ABSPATH')) {
                 </td>
             </tr>
             <tr>
+                <th scope="row"><label for="vereine_page_id"><?php esc_html_e('Vereinsseite', 'ksv-vereine'); ?></label></th>
+                <td>
+                    <?php
+                    wp_dropdown_pages([
+                        'name'              => Settings::OPTION_KEY . '[vereine_page_id]',
+                        'id'                => 'vereine_page_id',
+                        'selected'          => (int) ($settings['vereine_page_id'] ?? 0),
+                        'show_option_none'  => __('— Bitte wählen —', 'ksv-vereine'),
+                        'option_none_value' => '0',
+                    ]);
+                    ?>
+                    <p class="description">
+                        <?php esc_html_e(
+                            'Seite mit dem Block oder Shortcode [ksv_vereine]. Die Startseiten-Vereinssuche leitet hierher weiter.',
+                            'ksv-vereine'
+                        ); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><label for="vereinssuche_image_id"><?php esc_html_e('Kartengrafik Vereinssuche (Medien-ID)', 'ksv-vereine'); ?></label></th>
+                <td>
+                    <input type="number" id="vereinssuche_image_id" name="<?php echo esc_attr(Settings::OPTION_KEY); ?>[vereinssuche_image_id]" value="<?php echo esc_attr((string) ($settings['vereinssuche_image_id'] ?? 0)); ?>" class="small-text" />
+                    <p class="description">
+                        <?php esc_html_e(
+                            'Optional. Überschreibt die mitgelieferte Standardgrafik für den Vereinssuche-Block.',
+                            'ksv-vereine'
+                        ); ?>
+                    </p>
+                </td>
+            </tr>
+            <tr>
                 <th scope="row"><label for="suggestion_notify_email"><?php esc_html_e('E-Mail für Änderungsvorschläge', 'ksv-vereine'); ?></label></th>
                 <td>
                     <input

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "ksv/vereinssuche",
+  "version": "1.0.0",
+  "title": "KSV Vereinssuche",
+  "category": "widgets",
+  "icon": "search",
+  "description": "Suchbanner für die Startseite mit Kartengrafik. Ergebnisse auf der Vereinsseite.",
+  "textdomain": "ksv-vereine",
+  "attributes": {
+    "heading": {
+      "type": "string",
+      "default": "Schützenverein in Ihrer Nähe finden"
+    },
+    "description": {
+      "type": "string",
+      "default": "Nutzen Sie unsere dynamische Vereinssuche und finden Sie Schützenvereine in Ihrer Umgebung."
+    },
+    "imageId": {
+      "type": "number",
+      "default": 0
+    },
+    "imageUrl": {
+      "type": "string",
+      "default": ""
+    },
+    "vereinePageUrl": {
+      "type": "string",
+      "default": ""
+    },
+    "showLink": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "supports": {
+    "html": false,
+    "align": ["wide", "full"]
+  },
+  "editorScript": "file:./index.js"
+}

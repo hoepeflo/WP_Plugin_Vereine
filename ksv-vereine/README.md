@@ -13,6 +13,8 @@ Vollständige Spezifikation: [docs/SPEZIFIKATION.md](../docs/SPEZIFIKATION.md)
 
 ## Einbindung
 
+### Vereinsübersicht (Liste + Karte)
+
 **Shortcode:**
 
 ```
@@ -20,6 +22,24 @@ Vollständige Spezifikation: [docs/SPEZIFIKATION.md](../docs/SPEZIFIKATION.md)
 ```
 
 **Gutenberg:** Block „KSV Vereine“ einfügen
+
+### Vereinssuche für die Startseite
+
+Suchbanner mit Kartengrafik. Die Suche leitet zur konfigurierten Vereinsseite weiter; dort werden die Ergebnisse im Block `[ksv_vereine]` angezeigt.
+
+**Voraussetzung:** Unter **Vereine → Einstellungen** die **Vereinsseite** auswählen (Seite mit `[ksv_vereine]`).
+
+**Shortcode:**
+
+```
+[ksv_vereinssuche]
+```
+
+**Gutenberg:** Block „KSV Vereinssuche“ einfügen
+
+**Divi:** Modul „KSV Vereinssuche“ im Bereich *KSV Vereine* verwenden (alternativ Shortcode in einem Textmodul)
+
+Optionale Shortcode-Attribute: `heading`, `description`, `image_url`, `vereine_page_url`, `show_link="0"`
 
 ## Anforderungen
 

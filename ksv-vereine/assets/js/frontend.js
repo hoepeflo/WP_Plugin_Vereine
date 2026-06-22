@@ -23,6 +23,30 @@
     let searchQuery = '';
     const selectedDisciplines = new Set();
 
+    function readInitialParams() {
+        const params = new URLSearchParams(window.location.search);
+        const initialSearch = params.get('ksv_search') || params.get('search');
+
+        if (initialSearch) {
+            searchQuery = initialSearch.trim();
+            if (searchInput) {
+                searchInput.value = searchQuery;
+            }
+        }
+
+        params.getAll('disziplinen[]').forEach(function (slug) {
+            if (slug) {
+                selectedDisciplines.add(slug);
+            }
+        });
+
+        if (filtersEl && selectedDisciplines.size > 0) {
+            filtersEl.querySelectorAll('input[type="checkbox"]').forEach(function (input) {
+                input.checked = selectedDisciplines.has(input.value);
+            });
+        }
+    }
+
     const suggestionForm = root.querySelector('[data-ksv-suggestion-form]');
     const suggestionVereinSelect = root.querySelector('[data-ksv-suggestion-verein]');
     const suggestionFields = root.querySelector('[data-ksv-suggestion-fields]');
@@ -535,6 +559,7 @@
         });
     }
 
+    readInitialParams();
     initFilters();
     initMap();
     initSuggestionForm();
@@ -543,7 +568,9 @@
         loadSuggestionClubOptions();
     }
 
-    if (ksvVereine.hasSsrList && Array.isArray(ksvVereine.initialVereine)) {
+    if (searchQuery || selectedDisciplines.size > 0) {
+        loadVereine();
+    } else if (ksvVereine.hasSsrList && Array.isArray(ksvVereine.initialVereine)) {
         updateMap(ksvVereine.initialVereine);
     } else {
         loadVereine();

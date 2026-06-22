@@ -21,7 +21,7 @@ final class VereinssucheModule extends \ET_Builder_Module
      */
     protected $module_credits = [
         'module_uri' => '',
-        'author'     => 'Kreisschützenverband',
+        'author'     => 'Florian Höper',
         'author_uri' => '',
     ];
 
@@ -42,7 +42,7 @@ final class VereinssucheModule extends \ET_Builder_Module
                 'label'           => esc_html__('Überschrift', 'ksv-vereine'),
                 'type'            => 'text',
                 'option_category' => 'basic_option',
-                'default'         => esc_html__('Schützenverein in Ihrer Nähe finden', 'ksv-vereine'),
+                'default'         => esc_html__('Schützenverein in Deiner Nähe finden', 'ksv-vereine'),
                 'toggle_slug'     => 'main_content',
             ],
             'description' => [
@@ -50,7 +50,7 @@ final class VereinssucheModule extends \ET_Builder_Module
                 'type'            => 'textarea',
                 'option_category' => 'basic_option',
                 'default'         => esc_html__(
-                    'Nutzen Sie unsere dynamische Vereinssuche und finden Sie Schützenvereine in Ihrer Umgebung.',
+                    'Nutze unsere dynamische Vereinssuche und finde Schützenvereine in Deiner Umgebung.',
                     'ksv-vereine'
                 ),
                 'toggle_slug'     => 'main_content',

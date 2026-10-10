@@ -57,3 +57,37 @@ Optionale Shortcode-Attribute: `heading`, `description`, `image_url`, `vereine_p
 
 Musterdatei: `samples/vereine-beispiel.csv`  
 Spalten: `name`, `street`, `zip`, `city`, `website`, `disziplinen`, `active`
+
+## App-Modul (App „KSV Fallingbostel“)
+
+Das Plugin liefert Vereine, Disziplinen und Vereinscodes an die App „KSV Fallingbostel“ (Flutter + Firebase).
+
+> **Verbindlicher Schnittstellen-Vertrag:** Repo `APP_KSV-Fallingbostel`, Datei `docs/API-VERTRAG.md` (Abschnitte 1, 2 und 3.1).
+> Routen, Antwortformate und Ereignisse dürfen nur geändert werden, nachdem der Vertrag dort angepasst wurde.
+
+**REST-Routen** (Namespace `ksv-app/v1`, unabhängig von `ksv/v1` für das Web-Frontend):
+
+| Methode & Pfad | Zugriff | Antwort |
+|---|---|---|
+| `GET /wp-json/ksv-app/v1/vereine` | öffentlich | `{ items: [Verein], generated_at }` – nur veröffentlichte, aktive Vereine |
+| `GET /wp-json/ksv-app/v1/vereine/{id}` | öffentlich | `Verein` bzw. `404 ksv_app_nicht_gefunden` |
+| `GET /wp-json/ksv-app/v1/disziplinen` | öffentlich | `{ items: [{ slug, name }], generated_at }` |
+| `POST /wp-json/ksv-app/v1/vereine/code-pruefen` | signiert | `{ verein_id, name, code_version }` bzw. `404 ksv_app_code_ungueltig` |
+
+- GET-Antworten setzen `ETag` und `Cache-Control: public, max-age=300`; bei passendem `If-None-Match` folgt `304`. Das ETag wird über die Daten **ohne** `generated_at` gebildet.
+- `logo` enthält `thumbnail`, `medium`, `full` und `platzhalter`; SVG-Bilder werden nicht ausgeliefert (dann Platzhalter-Bild bzw. `null`). Leere Webseite → `website: null`.
+- Signierte Aufrufe: gemeinsames Geheimnis `KSV_APP_SECRET` in der `wp-config.php` (oder Option `ksv_app_secret`, gepflegt vom KSV App Connector), mind. 32 Zeichen. Ohne Geheimnis → `503 ksv_app_nicht_konfiguriert`, falsche Signatur → `401 ksv_app_signatur`. Die Prüfung (`AppSignatur`) ist im Plugin selbst implementiert.
+
+**Vereinscode:** Metabox *App-Vereinscode* im Bearbeiten-Bildschirm eines Vereins (für alle, die den Verein bearbeiten dürfen).
+
+- *Vereinscode erzeugen* bzw. *Code zurücksetzen* (mit Rückfrage) erzeugt einen Code `KSV-XXXX-XXXX`. Der Klartext wird nur direkt danach angezeigt – mit QR-Code und Druckansicht für den Aushang.
+- Gespeichert werden nur ein HMAC-Hash (`_ksv_app_code_hash`, Schlüssel `wp_salt('auth')` bzw. optional Konstante `KSV_VEREINE_CODE_KEY`), die Version (`_ksv_app_code_version`, beginnt bei 1) und der Zeitpunkt (`_ksv_app_code_erstellt`). **Werden die WordPress-Salts geändert, sind alle Codes ungültig** und müssen zurückgesetzt werden – daher ggf. `KSV_VEREINE_CODE_KEY` (mind. 32 Zeichen) fest in der `wp-config.php` setzen.
+- Beim Zurücksetzen ist der alte Code sofort ungültig; alle verknüpften App-Geräte des Vereins werden abgemeldet.
+- Eingelöst werden kann ein Code nur für veröffentlichte, aktive Vereine. Groß-/Kleinschreibung, Bindestriche und Leerzeichen spielen keine Rolle.
+- Der QR-Code enthält den Code im Klartext (`KSV-XXXX-XXXX`) und wird im Browser erzeugt (gebündelte Bibliothek `assets/vendor/qrcode-generator`, MIT-Lizenz).
+
+**Ereignisse** über `do_action('ksv_app_ereignis', …)` (ohne KSV App Connector wirkungslos, keine Personendaten):
+
+- `vereine.geaendert.<post_id>.<zeitstempel>` – Speichern, Papierkorb, Wiederherstellen, Löschen eines Vereins; nach einem CSV-Import einmal als Sammelereignis mit `post_id` 0
+- `disziplinen.geaendert.<zeitstempel>` – Anlegen, Ändern, Löschen einer Disziplin (Abgleich `disziplinen`, `vereine`)
+- `vereine.code_zurueckgesetzt.<verein_id>.<version>` – Vereinscode zurückgesetzt (`daten`: `verein_id`, `code_version`)

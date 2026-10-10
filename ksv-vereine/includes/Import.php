@@ -86,6 +86,8 @@ final class Import
         $success = 0;
         $failed  = 0;
 
+        do_action('ksv_vereine_import_beginn');
+
         foreach ($rows as $row) {
             if ($this->import_row($row)) {
                 ++$success;
@@ -94,6 +96,14 @@ final class Import
             }
             usleep(200000);
         }
+
+        /**
+         * Nach dem CSV-Import (z. B. für das App-Ereignis „vereine.geaendert“).
+         *
+         * @param int $success Anzahl importierter Vereine
+         * @param int $failed  Anzahl fehlgeschlagener Zeilen
+         */
+        do_action('ksv_vereine_import_ende', $success, $failed);
 
         wp_safe_redirect(
             admin_url(

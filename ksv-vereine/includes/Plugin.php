@@ -36,5 +36,6 @@ final class Plugin
         (new VereinssucheShortcode())->register();
         (new VereinssucheBlock())->register();
         (new DiviModule())->register();
+        (new AppModul())->register();
     }
 }

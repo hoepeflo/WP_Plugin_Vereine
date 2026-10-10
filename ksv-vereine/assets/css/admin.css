@@ -89,3 +89,42 @@
     max-width: 640px;
     margin-bottom: 2rem;
 }
+
+/* App-Vereinscode */
+.ksv-vereinscode__code {
+    font-family: Consolas, Monaco, "Courier New", monospace;
+    font-size: 1.4em;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    margin: 0.25em 0 0.75em;
+    user-select: all;
+}
+
+.ksv-vereinscode__qr {
+    max-width: 200px;
+    margin-bottom: 0.75em;
+}
+
+.ksv-vereinscode__qr svg {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.ksv-vereinscode__warnung {
+    border-left: 4px solid #dba617;
+    background: #fcf9e8;
+    padding: 0.5em 0.75em;
+}
+
+.ksv-vereinscode__hinweis {
+    color: #8a6d00;
+}
+
+.ksv-vereinscode__meldung:empty {
+    display: none;
+}
+
+.ksv-vereinscode__meldung--fehler {
+    color: #b32d2e;
+}

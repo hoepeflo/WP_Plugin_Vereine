@@ -200,6 +200,20 @@ Beispieldatei: `ksv-vereine/samples/vereine-beispiel.csv`
 - Query-Parameter: `search`, `disziplinen[]` (Slugs)
 - Antwort: JSON mit Vereinsdaten inkl. Koordinaten und Disziplinen für das Frontend-Skript
 
+### 6.9 App-Modul (App „KSV Fallingbostel“)
+
+Zusätzlich zu `ksv/v1` stellt das Plugin Endpunkte im Namespace `ksv-app/v1` für die App „KSV Fallingbostel“ (Flutter + Firebase) bereit und verwaltet die **Vereinscodes**, mit denen Mitglieder die App mit ihrem Verein verknüpfen.
+
+**Verbindlich ist der Schnittstellen-Vertrag im Repo `APP_KSV-Fallingbostel`, Datei `docs/API-VERTRAG.md`** (Abschnitte 1 „Allgemeine Regeln“, 2 „Ereignisse“, 3.1 „ksv-vereine“). Änderungen an Routen, Antwortformaten, Signaturprüfung oder Ereignissen werden zuerst dort eingetragen und erst dann im Plugin umgesetzt.
+
+Kurzüberblick (Details: `ksv-vereine/README.md`, Abschnitt „App-Modul“):
+
+- `GET /vereine`, `GET /vereine/{id}`, `GET /disziplinen` – öffentlich, mit `ETag`/`304` und `Cache-Control: public, max-age=300`
+- `POST /vereine/code-pruefen` – nur signiert (HMAC-SHA256 mit `KSV_APP_SECRET`, Vertrag 1.2)
+- Vereinscode je Verein (`KSV-XXXX-XXXX`), nur als Hash gespeichert, mit Version; Erzeugen/Zurücksetzen in der Metabox „App-Vereinscode“ (QR-Code, Druckansicht)
+- Ereignisse `vereine.geaendert.*`, `disziplinen.geaendert.*`, `vereine.code_zurueckgesetzt.*` über den Hook `ksv_app_ereignis`
+- Klassen: `AppModul`, `AppRestApi`, `AppSignatur`, `AppEreignisse`, `Vereinscode`, `VereinscodeAdmin`
+
 ---
 
 ## 7. Externe Dienste
@@ -251,7 +265,13 @@ ksv-vereine/
 │   ├── RestApi.php
 │   ├── Import.php
 │   ├── Shortcode.php
-│   └── Block.php
+│   ├── Block.php
+│   ├── AppModul.php             # App-Modul (siehe 6.9)
+│   ├── AppRestApi.php
+│   ├── AppSignatur.php
+│   ├── AppEreignisse.php
+│   ├── Vereinscode.php
+│   └── VereinscodeAdmin.php
 ├── blocks/vereine/
 ├── assets/
 │   ├── css/frontend.css
@@ -309,3 +329,5 @@ ksv-vereine/
 - [ ] CSV-Import mit Musterdatei funktioniert
 - [ ] Nur Admin kann löschen; Whitelist-Benutzer kann bearbeiten
 - [ ] Redakteur kann Vereine pflegen
+- [ ] App-Endpunkte `ksv-app/v1` liefern die Formate gemäß API-Vertrag (Repo `APP_KSV-Fallingbostel`, `docs/API-VERTRAG.md`)
+- [ ] Vereinscode erzeugen/zurücksetzen; alter Code ist danach ungültig

@@ -95,6 +95,14 @@ final class AppRestApi
 
     public function code_pruefen(\WP_REST_Request $request): \WP_REST_Response|\WP_Error
     {
+        if (! Vereinscode::schluessel_vorhanden()) {
+            return new \WP_Error(
+                'ksv_app_code_schluessel_fehlt',
+                __('Vereinscodes sind nicht konfiguriert: KSV_VEREINE_CODE_KEY fehlt in der wp-config.php.', 'ksv-vereine'),
+                ['status' => 503]
+            );
+        }
+
         $json = $request->get_json_params();
         $code = is_array($json) && isset($json['code']) ? $json['code'] : $request->get_param('code');
 

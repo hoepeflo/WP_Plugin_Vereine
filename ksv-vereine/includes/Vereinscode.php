@@ -66,25 +66,43 @@ final class Vereinscode
         return $wert;
     }
 
+    /** Mindestlänge des Schlüssels KSV_VEREINE_CODE_KEY. */
+    public const SCHLUESSEL_MINDESTLAENGE = 32;
+
     /**
-     * HMAC über den normalisierten Code. Schlüssel: Konstante KSV_VEREINE_CODE_KEY (falls gesetzt,
-     * mind. 32 Zeichen), sonst wp_salt('auth') aus der wp-config.php.
+     * HMAC über den normalisierten Code. Schlüssel: Konstante KSV_VEREINE_CODE_KEY aus der
+     * wp-config.php (mind. 32 Zeichen). Ohne gültigen Schlüssel wird kein Hash gebildet.
+     *
+     * @throws \RuntimeException Wenn KSV_VEREINE_CODE_KEY fehlt oder zu kurz ist.
      */
     public static function hash(string $normalisiert): string
     {
-        return hash_hmac('sha256', 'ksv-vereinscode|' . $normalisiert, self::schluessel());
-    }
-
-    private static function schluessel(): string
-    {
-        if (defined('KSV_VEREINE_CODE_KEY')) {
-            $key = constant('KSV_VEREINE_CODE_KEY');
-            if (is_string($key) && strlen($key) >= 32) {
-                return $key;
-            }
+        $schluessel = self::schluessel();
+        if ($schluessel === null) {
+            throw new \RuntimeException('KSV_VEREINE_CODE_KEY fehlt oder ist kürzer als 32 Zeichen.');
         }
 
-        return wp_salt('auth');
+        return hash_hmac('sha256', 'ksv-vereinscode|' . $normalisiert, $schluessel);
+    }
+
+    /**
+     * Ist ein gültiger Schlüssel (KSV_VEREINE_CODE_KEY, mind. 32 Zeichen) konfiguriert?
+     * Ohne Schlüssel werden Codes weder erzeugt noch geprüft – kein stiller Rückfall auf wp_salt().
+     */
+    public static function schluessel_vorhanden(): bool
+    {
+        return self::schluessel() !== null;
+    }
+
+    private static function schluessel(): ?string
+    {
+        if (! defined('KSV_VEREINE_CODE_KEY')) {
+            return null;
+        }
+
+        $key = constant('KSV_VEREINE_CODE_KEY');
+
+        return is_string($key) && strlen($key) >= self::SCHLUESSEL_MINDESTLAENGE ? $key : null;
     }
 
     public static function version(int $post_id): int
@@ -107,9 +125,14 @@ final class Vereinscode
      * Beim Zurücksetzen (es gab bereits einen Code) wird `vereine.code_zurueckgesetzt.<id>.<version>` ausgelöst.
      *
      * @return array{code: string, version: int}
+     * @throws \RuntimeException Ohne gültigen Schlüssel (siehe schluessel_vorhanden()).
      */
     public static function neu_erzeugen(int $post_id): array
     {
+        if (! self::schluessel_vorhanden()) {
+            throw new \RuntimeException('KSV_VEREINE_CODE_KEY fehlt oder ist kürzer als 32 Zeichen.');
+        }
+
         $vorher_version = self::version($post_id);
         $hatte_code     = $vorher_version > 0 || self::hat_code($post_id);
 
@@ -145,7 +168,7 @@ final class Vereinscode
     public static function finde_verein(string $eingabe): ?\WP_Post
     {
         $normalisiert = self::normalisieren($eingabe);
-        if ($normalisiert === null) {
+        if ($normalisiert === null || ! self::schluessel_vorhanden()) {
             return null;
         }
 
@@ -167,6 +190,36 @@ final class Vereinscode
         }
 
         return $post;
+    }
+
+    /**
+     * Alle Code-Metadaten eines Beitrags entfernen (z. B. nach dem Kopieren eines Vereins).
+     */
+    public static function entfernen(int $post_id): void
+    {
+        delete_post_meta($post_id, self::META_HASH);
+        delete_post_meta($post_id, self::META_VERSION);
+        delete_post_meta($post_id, self::META_ERSTELLT);
+    }
+
+    /**
+     * Trägt ein anderer Beitrag denselben Code-Hash (z. B. durch ein Kopier-Plugin dupliziert)?
+     * Solche Codes können nicht eingelöst werden (finde_verein() lehnt mehrdeutige Treffer ab).
+     */
+    public static function hash_doppelt(int $post_id): bool
+    {
+        $hash = (string) get_post_meta($post_id, self::META_HASH, true);
+        if ($hash === '') {
+            return false;
+        }
+
+        foreach (self::posts_mit_hash($hash, 2) as $post) {
+            if ($post->ID !== $post_id) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

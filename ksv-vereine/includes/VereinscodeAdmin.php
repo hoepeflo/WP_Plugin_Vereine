@@ -21,6 +21,103 @@ final class VereinscodeAdmin
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
         add_filter('manage_' . PostType::SLUG . '_posts_columns', [$this, 'admin_columns'], 20);
         add_action('manage_' . PostType::SLUG . '_posts_custom_column', [$this, 'admin_column_content'], 10, 2);
+        add_action('admin_notices', [$this, 'hinweis_schluessel_fehlt']);
+        add_action('admin_notices', [$this, 'hinweis_hash_doppelt']);
+
+        // Kopierte Vereine dürfen den Code nicht erben: Yoast Duplicate Post ausschließen …
+        add_filter('duplicate_post_excludelist_filter', [$this, 'duplicate_post_excludelist']);
+        // … und bei anderen Kopier-Plugins einen bereits vergebenen Hash vom neuen Beitrag entfernen.
+        add_action('wp_insert_post', [$this, 'nach_insert'], 10, 3);
+        add_action('added_post_meta', [$this, 'nach_meta_hinzugefuegt'], 10, 3);
+    }
+
+    /**
+     * Dauerhafter Hinweis für Administratoren, solange KSV_VEREINE_CODE_KEY fehlt oder zu kurz ist.
+     */
+    public function hinweis_schluessel_fehlt(): void
+    {
+        if (Vereinscode::schluessel_vorhanden() || ! current_user_can('manage_options')) {
+            return;
+        }
+
+        printf(
+            '<div class="notice notice-error"><p><strong>%s</strong> %s</p><p><code>%s</code></p></div>',
+            esc_html__('KSV Vereine: App-Vereinscodes sind nicht konfiguriert.', 'ksv-vereine'),
+            esc_html(sprintf(
+                /* translators: %d: Mindestlänge */
+                __('Bitte die Konstante KSV_VEREINE_CODE_KEY mit einer zufälligen Zeichenkette von mindestens %d Zeichen in der wp-config.php setzen. Bis dahin können keine Vereinscodes erzeugt oder in der App eingelöst werden. Der Schlüssel darf später nicht mehr geändert werden, sonst werden alle Codes ungültig.', 'ksv-vereine'),
+                Vereinscode::SCHLUESSEL_MINDESTLAENGE
+            )),
+            esc_html("define('KSV_VEREINE_CODE_KEY', '…mindestens " . Vereinscode::SCHLUESSEL_MINDESTLAENGE . " zufällige Zeichen…');")
+        );
+    }
+
+    /**
+     * Warnung im Bearbeiten-Bildschirm, wenn ein anderer Verein denselben Code-Hash trägt.
+     */
+    public function hinweis_hash_doppelt(): void
+    {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if ($screen === null || $screen->base !== 'post' || $screen->post_type !== PostType::SLUG) {
+            return;
+        }
+
+        $post_id = isset($_GET['post']) ? absint($_GET['post']) : 0;
+        if ($post_id <= 0 || ! current_user_can('edit_post', $post_id) || ! Vereinscode::hash_doppelt($post_id)) {
+            return;
+        }
+
+        printf(
+            '<div class="notice notice-warning"><p><strong>%s</strong> %s</p></div>',
+            esc_html__('App-Vereinscode doppelt vergeben.', 'ksv-vereine'),
+            esc_html__('Mindestens ein weiterer Verein trägt denselben Vereinscode (vermutlich wurde der Beitrag kopiert). Der Code kann in der App nicht eingelöst werden. Bitte den Vereinscode in der Metabox „App-Vereinscode“ zurücksetzen.', 'ksv-vereine')
+        );
+    }
+
+    /**
+     * Yoast Duplicate Post: Code-Metadaten nicht mitkopieren.
+     *
+     * @param array<int, string>|mixed $liste
+     * @return array<int, string>|mixed
+     */
+    public function duplicate_post_excludelist(mixed $liste): mixed
+    {
+        if (! is_array($liste)) {
+            return $liste;
+        }
+
+        return array_values(array_unique(array_merge(
+            $liste,
+            [Vereinscode::META_HASH, Vereinscode::META_VERSION, Vereinscode::META_ERSTELLT]
+        )));
+    }
+
+    /**
+     * Neuer Verein (kein Update) mit einem Hash, den bereits ein anderer Beitrag trägt: Code entfernen.
+     */
+    public function nach_insert(int $post_id, \WP_Post $post, bool $update): void
+    {
+        if ($update || $post->post_type !== PostType::SLUG) {
+            return;
+        }
+
+        if (Vereinscode::hash_doppelt($post_id)) {
+            Vereinscode::entfernen($post_id);
+        }
+    }
+
+    /**
+     * Kopier-Plugins übertragen Metadaten meist erst nach wp_insert_post(): auch dann prüfen.
+     */
+    public function nach_meta_hinzugefuegt(int $meta_id, int $post_id, string $meta_key): void
+    {
+        if ($meta_key !== Vereinscode::META_HASH || get_post_type($post_id) !== PostType::SLUG) {
+            return;
+        }
+
+        if (Vereinscode::hash_doppelt($post_id)) {
+            Vereinscode::entfernen($post_id);
+        }
     }
 
     public static function nonce_action(int $post_id): string
@@ -58,6 +155,8 @@ final class VereinscodeAdmin
             && (string) get_post_meta($post_id, '_ksv_active', true) === '1';
         $verein_name = html_entity_decode(wp_strip_all_tags($post->post_title), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $nonce       = wp_create_nonce(self::nonce_action($post_id));
+        $schluessel_fehlt = ! Vereinscode::schluessel_vorhanden();
+        $hash_doppelt     = $hat_code && Vereinscode::hash_doppelt($post_id);
 
         include KSV_VEREINE_PATH . 'templates/admin-vereinscode.php';
     }
@@ -135,6 +234,13 @@ final class VereinscodeAdmin
 
         if (in_array($post->post_status, ['auto-draft', 'trash'], true)) {
             wp_send_json_error(['message' => __('Bitte speichern Sie den Verein zuerst.', 'ksv-vereine')], 400);
+        }
+
+        if (! Vereinscode::schluessel_vorhanden()) {
+            wp_send_json_error(
+                ['message' => __('Vereinscodes sind nicht konfiguriert: KSV_VEREINE_CODE_KEY (mind. 32 Zeichen) fehlt in der wp-config.php.', 'ksv-vereine')],
+                503
+            );
         }
 
         // Schutz vor doppeltem Zurücksetzen (Doppelklick, zweiter Tab): erwartete Version muss stimmen.

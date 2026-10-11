@@ -10,6 +10,8 @@
  * @var bool   $einloesbar
  * @var string $verein_name
  * @var string $nonce
+ * @var bool   $schluessel_fehlt
+ * @var bool   $hash_doppelt
  */
 
 if (! defined('ABSPATH')) {
@@ -23,7 +25,11 @@ if (! defined('ABSPATH')) {
     data-version="<?php echo esc_attr((string) $version); ?>"
     data-verein="<?php echo esc_attr($verein_name); ?>"
 >
-    <?php if ($ist_neu) : ?>
+    <?php if ($schluessel_fehlt) : ?>
+        <p class="ksv-vereinscode__hinweis">
+            <?php esc_html_e('Vereinscodes sind nicht konfiguriert: Die Konstante KSV_VEREINE_CODE_KEY (mind. 32 Zeichen) muss in der wp-config.php gesetzt werden.', 'ksv-vereine'); ?>
+        </p>
+    <?php elseif ($ist_neu) : ?>
         <p><?php esc_html_e('Bitte speichern Sie den Verein zuerst. Danach kann ein Vereinscode für die App erzeugt werden.', 'ksv-vereine'); ?></p>
     <?php else : ?>
         <p class="ksv-vereinscode__status">
@@ -44,6 +50,12 @@ if (! defined('ABSPATH')) {
         <p class="description">
             <?php esc_html_e('Mit dem Vereinscode verknüpfen Mitglieder die App „KSV Fallingbostel“ mit dem Verein und erhalten interne Vereinsnachrichten. Gespeichert wird nur ein Hash – der Code ist ausschließlich direkt nach dem Erzeugen sichtbar.', 'ksv-vereine'); ?>
         </p>
+
+        <?php if ($hash_doppelt) : ?>
+            <p class="ksv-vereinscode__hinweis">
+                <?php esc_html_e('Achtung: Ein weiterer Verein trägt denselben Vereinscode (kopierter Beitrag). Der Code kann nicht eingelöst werden – bitte zurücksetzen.', 'ksv-vereine'); ?>
+            </p>
+        <?php endif; ?>
 
         <?php if (! $einloesbar) : ?>
             <p class="ksv-vereinscode__hinweis">

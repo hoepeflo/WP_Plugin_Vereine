@@ -72,7 +72,7 @@ Das Plugin liefert Vereine, Disziplinen und Vereinscodes an die App „KSV Falli
 | `GET /wp-json/ksv-app/v1/vereine` | öffentlich | `{ items: [Verein], generated_at }` – nur veröffentlichte, aktive Vereine |
 | `GET /wp-json/ksv-app/v1/vereine/{id}` | öffentlich | `Verein` bzw. `404 ksv_app_nicht_gefunden` |
 | `GET /wp-json/ksv-app/v1/disziplinen` | öffentlich | `{ items: [{ slug, name }], generated_at }` |
-| `POST /wp-json/ksv-app/v1/vereine/code-pruefen` | signiert | `{ verein_id, name, code_version }` bzw. `404 ksv_app_code_ungueltig` |
+| `POST /wp-json/ksv-app/v1/vereine/code-pruefen` | signiert | `{ verein_id, name, code_version }` bzw. `404 ksv_app_code_ungueltig`; ohne `KSV_VEREINE_CODE_KEY` → `503 ksv_app_code_schluessel_fehlt` |
 
 - GET-Antworten setzen `ETag` und `Cache-Control: public, max-age=300`; bei passendem `If-None-Match` folgt `304`. Das ETag wird über die Daten **ohne** `generated_at` gebildet.
 - `logo` enthält `thumbnail`, `medium`, `full` und `platzhalter`; SVG-Bilder werden nicht ausgeliefert (dann Platzhalter-Bild bzw. `null`). Leere Webseite → `website: null`.
@@ -81,7 +81,8 @@ Das Plugin liefert Vereine, Disziplinen und Vereinscodes an die App „KSV Falli
 **Vereinscode:** Metabox *App-Vereinscode* im Bearbeiten-Bildschirm eines Vereins (für alle, die den Verein bearbeiten dürfen).
 
 - *Vereinscode erzeugen* bzw. *Code zurücksetzen* (mit Rückfrage) erzeugt einen Code `KSV-XXXX-XXXX`. Der Klartext wird nur direkt danach angezeigt – mit QR-Code und Druckansicht für den Aushang.
-- Gespeichert werden nur ein HMAC-Hash (`_ksv_app_code_hash`, Schlüssel `wp_salt('auth')` bzw. optional Konstante `KSV_VEREINE_CODE_KEY`), die Version (`_ksv_app_code_version`, beginnt bei 1) und der Zeitpunkt (`_ksv_app_code_erstellt`). **Werden die WordPress-Salts geändert, sind alle Codes ungültig** und müssen zurückgesetzt werden – daher ggf. `KSV_VEREINE_CODE_KEY` (mind. 32 Zeichen) fest in der `wp-config.php` setzen.
+- Gespeichert werden nur ein HMAC-Hash (`_ksv_app_code_hash`, Schlüssel: Konstante `KSV_VEREINE_CODE_KEY` in der `wp-config.php`, mind. 32 Zeichen), die Version (`_ksv_app_code_version`, beginnt bei 1) und der Zeitpunkt (`_ksv_app_code_erstellt`). **Ohne gültigen Schlüssel** zeigt das Backend Administratoren einen dauerhaften Hinweis, es werden keine Codes erzeugt und `POST /vereine/code-pruefen` antwortet mit `503 ksv_app_code_schluessel_fehlt`. **Wird der Schlüssel geändert, sind alle Codes ungültig** und müssen zurückgesetzt werden.
+- Beim Kopieren eines Vereins (z. B. Yoast Duplicate Post) werden die Code-Metadaten nicht übernommen; trägt ein neuer Beitrag dennoch einen bereits vergebenen Hash, wird er dort entfernt. Ein doppelt vergebener Code wird im Bearbeiten-Bildschirm als Warnung angezeigt und kann nicht eingelöst werden.
 - Beim Zurücksetzen ist der alte Code sofort ungültig; alle verknüpften App-Geräte des Vereins werden abgemeldet.
 - Eingelöst werden kann ein Code nur für veröffentlichte, aktive Vereine. Groß-/Kleinschreibung, Bindestriche und Leerzeichen spielen keine Rolle.
 - Der QR-Code enthält den Code im Klartext (`KSV-XXXX-XXXX`) und wird im Browser erzeugt (gebündelte Bibliothek `assets/vendor/qrcode-generator`, MIT-Lizenz).

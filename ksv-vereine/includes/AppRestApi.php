@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace KSV\Vereine;
 
 /**
- * App-Endpunkte im Namespace ksv-app/v1 (API-Vertrag, Abschnitte 1.1 und 3.1).
+ * App-Endpunkte im Namespace ksv-app/v1 (API-Vertrag, Abschnitte 1.1 und 3.1). Nur öffentliche GET-Routen.
  *
  * Verbindlicher Vertrag: Repo APP_KSV-Fallingbostel, docs/API-VERTRAG.md.
  */
@@ -41,12 +41,6 @@ final class AppRestApi
             'methods'             => 'GET',
             'callback'            => [$this, 'get_disziplinen'],
             'permission_callback' => '__return_true',
-        ]);
-
-        register_rest_route(self::NAMESPACE, '/vereine/code-pruefen', [
-            'methods'             => 'POST',
-            'callback'            => [$this, 'code_pruefen'],
-            'permission_callback' => [AppSignatur::class, 'pruefe'],
         ]);
     }
 
@@ -91,38 +85,6 @@ final class AppRestApi
         );
 
         return $this->liste($request, $items);
-    }
-
-    public function code_pruefen(\WP_REST_Request $request): \WP_REST_Response|\WP_Error
-    {
-        if (! Vereinscode::schluessel_vorhanden()) {
-            return new \WP_Error(
-                'ksv_app_code_schluessel_fehlt',
-                __('Vereinscodes sind nicht konfiguriert: KSV_VEREINE_CODE_KEY fehlt in der wp-config.php.', 'ksv-vereine'),
-                ['status' => 503]
-            );
-        }
-
-        $json = $request->get_json_params();
-        $code = is_array($json) && isset($json['code']) ? $json['code'] : $request->get_param('code');
-
-        $post = is_string($code) ? Vereinscode::finde_verein($code) : null;
-        if ($post === null) {
-            return new \WP_Error(
-                'ksv_app_code_ungueltig',
-                __('Der Vereinscode ist ungültig.', 'ksv-vereine'),
-                ['status' => 404]
-            );
-        }
-
-        $response = new \WP_REST_Response([
-            'verein_id'    => $post->ID,
-            'name'         => self::text($post->post_title),
-            'code_version' => Vereinscode::version($post->ID),
-        ]);
-        $response->header('Cache-Control', 'no-store');
-
-        return $response;
     }
 
     /**

@@ -37,5 +37,7 @@ final class Plugin
         (new VereinssucheBlock())->register();
         (new DiviModule())->register();
         (new AppModul())->register();
+
+        Activator::upgrade();
     }
 }

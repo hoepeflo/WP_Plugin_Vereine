@@ -17,6 +17,5 @@ final class AppModul
     {
         (new AppRestApi())->register();
         (new AppEreignisse())->register();
-        (new VereinscodeAdmin())->register();
     }
 }

@@ -111,18 +111,6 @@ final class AppEreignisse
         );
     }
 
-    public static function code_zurueckgesetzt(int $verein_id, int $code_version): void
-    {
-        self::ausloesen(
-            'vereine.code_zurueckgesetzt.' . $verein_id . '.' . $code_version,
-            ['vereine'],
-            [
-                'verein_id'    => $verein_id,
-                'code_version' => $code_version,
-            ]
-        );
-    }
-
     /**
      * @param list<string>         $abgleich
      * @param array<string, mixed> $daten

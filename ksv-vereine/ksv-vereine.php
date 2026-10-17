@@ -3,7 +3,7 @@
  * Plugin Name:       KSV Vereine
  * Plugin URI:        https://github.com/example/ksv-vereine
  * Description:       Mitgliedsvereine eines Kreisschützenverbandes mit Karte, Suche und Disziplin-Filtern.
- * Version:           1.2.1
+ * Version:           1.3.0
  * Requires at least: 6.4
  * Requires PHP:      8.4
  * Author:            Kreisschützenverband
@@ -18,7 +18,7 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-define('KSV_VEREINE_VERSION', '1.2.1');
+define('KSV_VEREINE_VERSION', '1.3.0');
 define('KSV_VEREINE_FILE', __FILE__);
 define('KSV_VEREINE_PATH', plugin_dir_path(__FILE__));
 define('KSV_VEREINE_URL', plugin_dir_url(__FILE__));
